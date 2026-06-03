@@ -1,0 +1,13 @@
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+.test*
+.check*
+.fix*
+
+# Build artifacts
+WireGuardMultiTunnel-*.dmg
+WireGuardMultiTunnel.app
+WireGuardMultiTunnel-*.zip
+build/
+DerivedData/

@@ -1,0 +1,2 @@
+# ignore vendor files, will be removed in the future
+--exclude WireGuardMultiTunnelHelper/SKQueue.swift,WireGuardMultiTunnel/INIParser.swift

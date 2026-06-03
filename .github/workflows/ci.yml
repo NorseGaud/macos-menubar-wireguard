@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install Homebrew dependencies
+        run: brew bundle install --no-upgrade
+
+      - name: Install xcpretty
+        run: gem install xcpretty --no-document
+
+      - name: Run unit tests
+        env:
+          CI: true
+        run: make test-unit

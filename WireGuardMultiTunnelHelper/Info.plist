@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>WireGuardMultiTunnelHelper</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>WireGuardMultiTunnelHelper</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1780415358</string>
+	<key>Hash</key>
+	<string>303e3fef62e57d3b185e15d2fb15ab21</string>
+	<key>SMAuthorizedClients</key>
+	<array>
+		<string>anchor apple generic and identifier "WireGuardMultiTunnel" and certificate leaf[subject.OU] = "4JD8RUCQ2W"</string>
+	</array>
+	<key>SOURCE_HASH</key>
+	<string>886e20d69cc3a41c7278f5296108ecc9</string>
+</dict>
+</plist>

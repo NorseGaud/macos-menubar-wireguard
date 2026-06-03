@@ -1,0 +1,12 @@
+disabled_rules:
+  # its better to keep todos in code than to loose track of them somewhere else
+  - todo
+  # conflicts with swiftformat's default
+  - trailing_comma
+  - opening_brace
+  - function_body_length
+  - trailing_newline
+excluded:
+  # ignore vendor files, will be removed in the future
+  - WireGuardMultiTunnel/INIParser.swift
+  - WireGuardMultiTunnelHelper/SKQueue.swift
