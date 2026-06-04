@@ -83,8 +83,7 @@ struct WireGuard {
         NSLog("Reading interface name for tunnel \(tunnelName) (wg-quick name: \(wgQuickName))")
         var interfaceName: String
         if let tunnelNameFileContents = try? String(contentsOfFile: runPath + "/" + wgQuickName + ".name",
-                                                    encoding: .utf8)
-        {
+                                                    encoding: .utf8) {
             interfaceName = tunnelNameFileContents.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
         } else {
             // tunnel is not connected
@@ -113,8 +112,7 @@ struct WireGuard {
         // TODO: read configuration data from wg showconf as well
         NSLog("Reading config file: \(configFile)")
         if let configFileContents = try? String(contentsOfFile: configFile,
-                                                encoding: .utf8)
-        {
+                                                encoding: .utf8) {
             return WireGuard.censorConfigurationData(configFileContents)
         }
         NSLog("Could not read configuration file for tunnel '\(tunnelName)'")

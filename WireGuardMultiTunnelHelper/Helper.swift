@@ -47,8 +47,7 @@ class Helper: NSObject, HelperProtocol, SKQueueDelegate {
         let defaultWgQuickPath = "\(brewPrefix)/bin/wg-quick"
         if let configuredWgQuickPath = defaults.string(forKey: "wgquickBinPath"), !configuredWgQuickPath.isEmpty {
             if let validatedWgQuickPath = PathSecurity.validateBinaryPath(configuredWgQuickPath,
-                                                                          expectedBasename: "wg-quick")
-            {
+                                                                          expectedBasename: "wg-quick") {
                 wgquickBinPath = validatedWgQuickPath
                 NSLog("Overriding 'wgquickBinPath' with: \(wgquickBinPath)")
             } else {
@@ -148,8 +147,7 @@ class Helper: NSObject, HelperProtocol, SKQueueDelegate {
 
     // XPC: called by App to have Helper change the state of a tunnel to up or down
     func setTunnel(tunnelName: String, enable: Bool, reply:
-        @escaping (_ success: Bool, _ errorMessage: String) -> Void)
-    {
+        @escaping (_ success: Bool, _ errorMessage: String) -> Void) {
         let state = enable ? "up" : "down"
 
         if !WireGuard.validateTunnelName(tunnelName: tunnelName) {

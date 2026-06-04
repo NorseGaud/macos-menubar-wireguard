@@ -34,8 +34,7 @@ enum XPCSecurity {
     }
 
     private static func validatePeerProcess(_ connection: NSXPCConnection,
-                                            requirement: String) -> Bool
-    {
+                                            requirement: String) -> Bool {
         if #available(macOS 13.0, *) {
             // macOS 13+ enforces requirements via setCodeSigningRequirement APIs.
             return true
