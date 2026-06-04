@@ -93,13 +93,13 @@ private final class TunnelNameMenuItemView: ClickableMenuItemView {
 
         let nameLabel = NSTextField(labelWithString: title)
         nameLabel.font = NSFont.menuFont(ofSize: 0)
-        nameLabel.textColor = .labelColor
+        nameLabel.textColor = .black
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(nameLabel)
 
         let statusLabel = NSTextField(labelWithString: "(connected)")
         statusLabel.font = NSFont.menuFont(ofSize: 0)
-        statusLabel.textColor = .secondaryLabelColor
+        statusLabel.textColor = NSColor.black.withAlphaComponent(0.6)
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(statusLabel)
 
