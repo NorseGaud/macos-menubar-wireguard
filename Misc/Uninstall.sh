@@ -11,6 +11,9 @@ for label in \
   WireGuardStatusbarHelper \
   WireGuardMultiTunnelHelper
 do
+  # Boot out by service target first: this works even when the plist file is
+  # already gone, avoiding an orphaned launchd registration that makes XPC hang.
+  sudo launchctl bootout "system/${label}" 2>/dev/null || true
   sudo launchctl bootout system "/Library/LaunchDaemons/${label}.plist" 2>/dev/null || \
     sudo launchctl unload "/Library/LaunchDaemons/${label}.plist" 2>/dev/null || true
   sudo rm -f "/Library/LaunchDaemons/${label}.plist"

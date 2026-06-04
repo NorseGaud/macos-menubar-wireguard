@@ -30,6 +30,10 @@ next_version:=$(shell printf '%s\n' '$(version)' | awk -F. '{printf "%d.%d\n", $
 new_version?=${next_version}
 revisions=$(shell git rev-list --all --count HEAD)
 helper_revisions=$(shell git rev-list --all  --count WireGuardMultiTunnelHelper/*.swift)
+app_info_plist=WireGuardMultiTunnel/Info.plist
+helper_info_plist=WireGuardMultiTunnelHelper/Info.plist
+info_plists=${app_info_plist} ${helper_info_plist}
+build_number_override=$(filter command environment,$(origin build_number))
 
 # Disable code signing in CI (no certificates on GitHub Actions runners)
 ifdef CI
@@ -111,20 +115,50 @@ sync-version:
 		fi; \
 	done
 
+# Increment CFBundleVersion in app and helper plists (kept in sync for SMJobBless)
+.PHONY: bump-build-number
+bump-build-number: sync-version
+ifdef CI
+	@echo 'CI: skipping build number bump'
+else ifneq ($(build_number_override),)
+	@test -n '${build_number}' || (echo 'build_number override is empty'; exit 1)
+	@for plist in ${info_plists}; do \
+		/usr/libexec/PlistBuddy -c "Set CFBundleVersion ${build_number}" "$$plist"; \
+	done
+	@echo "Build number => ${build_number}"
+else
+	@current=$$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' '${app_info_plist}'); \
+	case "$$current" in ''|*[!0-9]*) \
+		echo "CFBundleVersion must be a positive integer in ${app_info_plist}; got: $$current"; exit 1;; \
+	esac; \
+	next=$$((10#$$current + 1)); \
+	for plist in ${info_plists}; do \
+		/usr/libexec/PlistBuddy -c "Set CFBundleVersion $$next" "$$plist"; \
+	done; \
+	echo "Build number => $$next"
+endif
+
 # Location where xcodebuild puts .app when archiving
 archive=${tmp}/WireGuardMultiTunnel.xcarchive
 build_dest=${archive}/Products/Applications
 dist=${tmp}/WireGuardMultiTunnel
+dmg_volume=WireGuardMultiTunnel
+install_stamp=${tmp}/.wireguard-multitunnel-installed
 
 # Create just the .app in the current working directory
 app: WireGuardMultiTunnel.app
 WireGuardMultiTunnel.app: ${build_dest}/WireGuardMultiTunnel.app
 	rm -rf "$@" && cp -r "${<}" "$@"
 
-# Create distributable .dmg in current working directory
-dist: WireGuardMultiTunnel-${version}-${revisions}.dmg
-WireGuardMultiTunnel-${version}-${revisions}.dmg: ${dist}/WireGuardMultiTunnel.app
-	hdiutil create -fs HFS+ "$@" -srcfolder "${<D}" -ov
+# Create distributable .dmg in current working directory (version + CFBundleVersion)
+.PHONY: dist create-dmg
+dist: ${dist}/WireGuardMultiTunnel.app create-dmg
+create-dmg: ${dist}/WireGuardMultiTunnel.app
+	@build=$$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' '${app_info_plist}'); \
+	test -n "$$build"; \
+	dmg="WireGuardMultiTunnel-${version}-$$build.dmg"; \
+	rm -f WireGuardMultiTunnel-${version}-*.dmg; \
+	hdiutil create -fs HFS+ "$$dmg" -srcfolder '${dist}' -ov
 
 # Zipped distributable with current git commit sha
 zip: WireGuardMultiTunnel-${git_sha}.zip
@@ -142,19 +176,26 @@ ${dist}/WireGuardMultiTunnel.app: ${build_dest}/WireGuardMultiTunnel.app Misc/Un
 	rm -rf "$@" && cp -r "$<" "$@"
 
 # Generate archive build (this excludes debug symbols (dSYM) which are in a release build)
-${build_dest}/WireGuardMultiTunnel.app: ${sources} sync-version | icons ensure-xcpretty
+${build_dest}/WireGuardMultiTunnel.app: bump-build-number ${sources} | icons ensure-xcpretty
 	xcodebuild -scheme WireGuardMultiTunnel -archivePath "${archive}" archive $(xcodebuild_flags) | $(xcpretty_cmd)
 
-# install and run the App /Application using the distributable .dmg
-install: /Applications/WireGuardMultiTunnel.app
-/Applications/WireGuardMultiTunnel.app: WireGuardMultiTunnel-${version}-${revisions}.dmg
-	-osascript -e 'tell application "WireGuardMultiTunnel" to quit'
-	-hdiutil detach -quiet /Volumes/WireGuardMultiTunnel/
-	hdiutil attach -quiet WireGuardMultiTunnel-${version}-${revisions}.dmg
-	cp -r /Volumes/WireGuardMultiTunnel/WireGuardMultiTunnel.app /Volumes/WireGuardMultiTunnel/Applications/
-	hdiutil detach -quiet /Volumes/WireGuardMultiTunnel/
-	touch $@
-	open "$@"
+# install and run the App in /Applications (via mounted .dmg; ditto avoids symlink/xattr cp failures)
+.PHONY: install
+install: $(install_stamp)
+$(install_stamp): create-dmg
+	@set -e; \
+	build=$$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' '${app_info_plist}'); \
+	dmg="WireGuardMultiTunnel-${version}-$$build.dmg"; \
+	volume="/Volumes/${dmg_volume}"; \
+	test -f "$$dmg"; \
+	osascript -e 'tell application "WireGuardMultiTunnel" to quit' 2>/dev/null || true; \
+	hdiutil detach -quiet "$$volume" 2>/dev/null || true; \
+	hdiutil attach -quiet -nobrowse "$$dmg"; \
+	rm -rf /Applications/WireGuardMultiTunnel.app; \
+	ditto "$$volume/WireGuardMultiTunnel.app" /Applications/WireGuardMultiTunnel.app; \
+	hdiutil detach -quiet "$$volume"; \
+	touch "$(install_stamp)"; \
+	open /Applications/WireGuardMultiTunnel.app
 
 uninstall:
 	Misc/Uninstall.sh
@@ -297,6 +338,7 @@ clean:
 		WireGuardMultiTunnel-*.dmg \
 		WireGuardMultiTunnel-*.zip \
 		${tmp}/WireGuardMultiTunnel-*.app \
+		${install_stamp} \
 		DerivedData/
 
 # cleanup most artifacts that could be generated by the Makefile

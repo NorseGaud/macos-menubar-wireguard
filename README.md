@@ -64,7 +64,7 @@ To build a distributable `.dmg` and install to `/Applications` (unit tests only,
 
     make
 
-Set the release version in the root `VERSION` file (for example `1.24`). `make` reads that value for distributable names and syncs `CFBundleShortVersionString` in both app and helper `Info.plist` files before archiving. You can override once with `make version=1.25 dist`.
+Set the release version in the root `VERSION` file (for example `2.0.0`). `make` reads that value for distributable names and syncs `CFBundleShortVersionString` in both app and helper `Info.plist` files before archiving. Each distributable build (`make`, `make dist`, `make app`, …) increments `CFBundleVersion` in both plists so the helper stays in sync with the app. The `.dmg` is named with that version and build number (for example `WireGuardMultiTunnel-2.0.0-132.dmg`). Override once with `make version=2.0.1 build_number=140 dist` (skips auto-increment). CI skips the bump.
 
 For a full release verification including integration tests:
 
